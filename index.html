@@ -1,57 +1,46 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset='utf-8'>
-        <meta http-equiv='X-UA-Compatible' content='IE=edge'>
-        <title>YPet Demo</title>
-        <link rel='stylesheet' href='//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css'>
-        <link rel='stylesheet' href='main.css'>
-    </head>
-    <body>
-      <a href="https://github.com/sulab/YPet"><img style="position: fixed; top: 0; right: 0; border: 0; z-index: 999;" src="https://camo.githubusercontent.com/38ef81f8aca64bb9a64448d0d70f1308ef5341ab/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f6461726b626c75655f3132313632312e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png"></a>
-      <p id="credits">By <a href="http://twitter.com/x0xMaximus" target="_blank">Max Nanis</a><br>at <a href="http://sulab.org/" target="_blank">The Su Lab</a></p>
-
-      <div class="container head-space">
-
+  <head>
+    <meta charset='utf-8'>
+    <title>Annotator</title>
+    <link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css'>
+    <link rel='stylesheet' href='main.css'>
+  </head>
+  <body>
+    <div class="container head-space">
+      <div class="col-md-8">
         <div class="row">
-          <div class="col-xs-10 col-xs-offset-1">
-            <div class="alert alert-info alert-paragraph-box">
-              <div class="row">
-                <div class="col-xs-8 col-xs-offset-2">
-                  <h2 class="text-center">Click n' Drag on stuff!</h2>
-                  <p class="text-center"><a href="https://github.com/SuLab/YPet">YPet</a> is a Javascript library to rapidly annotate paragraphs of text on websites with the goal of making the annotation process as fast and simple as possible.</p>
-                </div>
-              </div>
-            </div>
+          <div id="target">
+            <p class="paragraph"></p>
           </div>
         </div>
-
-        <div class="row">
-          <div id="target" class="col-xs-10 col-xs-offset-1">
-            <p class="paragraph">BACKGROUND & AIMS  The chromosome region 18q21 has been shown to be frequently deleted in colorectal cancers , and such frequent allelic loss is a hallmark of the presence of a tumor-suppressor gene . The DPC4 gene , which is located at 18q21 , has been identified as a tumor-suppressor gene from examination of pancreatic cancers . The aim of the present study was to determine if it might also be altered in colorectal cancers . METHODS  Mutation analyses of the DPC4 gene were performed on complementary DNA samples from 31 primary colorectal cancer specimens using a combination of polymerase chain reaction , single-strand conformation polymorphism , and DNA sequencing . RESULTS  Four missense mutations producing amino acid substitutions and a somatic 12-base pair deletion in the coding region of the DPC4 gene were detected in the 31 cancers ( 16 % ; 5 of 31 ) . CONCLUSIONS  The DPC4 gene may play a role as a tumor-suppressor gene in a fraction of colorectal cancers ; however , while allelic loss at 18q21 is very often seen in colorectal cancers , only a minority show DPC4 mutations , suggesting that there might be another tumor-suppressor gene in this chromosome region . .  </p>
-          </div>
-        </div>
-
-        <div class="row">
-          <div class="col-xs-3 col-xs-offset-1">
-            <ul class="annotation-type-list list-group"></ul>
-          </div>
-
-          <div class="col-xs-7">
-            <ul class="annotation-list list-group"></ul>
-          </div>
-        </div>
-
       </div>
-      <script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
-      <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
-      <script src="//underscorejs.org/underscore-min.js"></script>
-      <script src="src/underscore.string.min.js"></script>
-      <script src="//backbonejs.org/backbone-min.js"></script>
-      <script src="src/backbone-relational.js"></script>
-      <script src="src/backbone.marionette.min.js"></script>
+      <div class="col-md-4">
+        <div class="row">
+          <div class="col-md-12">
+            <h3>Documents</h3>
+            <ul id="document-list"></ul>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-12">
+            <h3>Annotations</h3>
+            <ul id="annotation-list"></ul>
+            <button class="btn btn-primary" id="save-btn" onClick="saveAnnotation()">Save Annotation</button>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+    <script src="https://underscorejs.org/underscore-min.js"></script>
+    <script src="src/underscore.string.min.js"></script>
+    <script src="https://backbonejs.org/backbone-min.js"></script>
+    <script src="src/backbone-relational.js"></script>
+    <script src="src/backbone.marionette.min.js"></script>
 
-      <script src="src/ypet.js"></script>
-      <script src="src/demo.js"></script>
-   </body>
+    <script src="src/ypet.js"></script>
+    <script src="src/demo.js"></script>
+  </body>
 </html>

@@ -119,9 +119,9 @@ AnnotationList = Backbone.Collection.extend({
   },
 
   add : function(ann) {
-    if (ann.get('words').length==0) { return false; }
+    if (ann && ann.get('words').length == 0) {return false}
     Backbone.Collection.prototype.add.call(this, ann);
-  }
+  },
 
 });
 
@@ -176,13 +176,38 @@ Paragraph = Backbone.RelationalModel.extend({
     this.get('words').each(function(word) { word.destroy(); });
     this.get('words').add(words);
   },
+  setAnnotationJSON(json) {
+    var annotations = this.get('annotations');
+    var model;
+    while (model = annotations.first()) {
+      model.destroy();
+    }
+    
+    var words = this.get('words');
+    _.each(json, function(annotationJSON) {
+      var annotationWords = _.str.words(annotationJSON.text);
+      var selectedWords = words.filter(function (w) {
+        return w.get('start') >= annotationJSON.start
+      }).slice(0, annotationWords.length);
+      var allWordsMatch = _.all(_.zip(annotationWords, selectedWords, function(annotationWord, selectedWord) {
+        return annotationWord == selectedWord;
+      }));
+      if (selectedWords && allWordsMatch) {
+        annotations.create({words: selectedWords});
+      }
+    });
+  },
+
+  getAnnotationJSON() {
+    return this.get('annotations').toJSON();
+  }
 });
 
 /*
  * Views
  */
 WordView = Backbone.Marionette.ItemView.extend({
-  template: _.template('<% if(neighbor) { %><%= text %><% } else { %><%= text %> <% } %>'),
+  template: _.template('<%= text %>'),
   tagName: 'span',
 
   /* These events are only triggered when over
@@ -212,14 +237,12 @@ WordView = Backbone.Marionette.ItemView.extend({
   /* Triggers the proper class assignment
    * when the word <span> is redrawn */
   onRender : function() {
-    this.$el.css({'margin-right': this.model.get('neighbor') ? '5px' : '0px'});
+    this.$el.html('&nbsp;'+this.model.get('text')+' ')
   },
-
   /* When clicking down, make sure to keep track
    * that that word has been the latest interacted
    * element */
   mousedown : function(evt) {
-    console.log(evt, this);
     evt.stopPropagation();
     this.model.set({'latest': 1});
   },
@@ -375,8 +398,3 @@ WordCollectionView = Backbone.Marionette.CollectionView.extend({
 });
 
 YPet = new Backbone.Marionette.Application();
-YPet.AnnotationTypes = new AnnotationTypeList([
-  {name: 'Disease', color: '#00ccff'},
-  {name: 'Gene', color: '#22A301'},
-  {name: 'Protein', color: 'yellow'}
-]);
