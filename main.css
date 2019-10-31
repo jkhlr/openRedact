@@ -31,12 +31,15 @@ a {
   cursor: pointer;
 }
 
+a.active-link {
+  text-decoration: underline;
+}
+
 button {
   width: 100%;
 }
 
 p.paragraph span:hover {
   cursor: pointer;
-  color: steelblue;
 }
 

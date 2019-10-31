@@ -2,7 +2,7 @@ var DocumentListView = Backbone.Marionette.CollectionView.extend({
   tagName: 'ul',
   childView: Backbone.Marionette.ItemView.extend({
     tagName: 'li',
-    template: _.template('<a onClick="showDocument(\'<%-id%>\')"><%-title%></a>'),
+    template: _.template('<a <% if (id === currentDocumentId) { %>class="active-link" <% } %>onClick="showDocument(<% if (id) { %>\'<%-id%>\'<% } else { %>null<% } %>)"><%-title%></a>'),
   })
 });
 
@@ -10,7 +10,7 @@ var AnnotationListView = Backbone.Marionette.CollectionView.extend({
   tagName: 'ul',
   childView: Backbone.Marionette.ItemView.extend({
     tagName: 'li',
-    template: _.template('<a onClick="showAnnotation(\'<%-id%>\')"><%-title%></a>'),
+    template: _.template('<span><a <% if (id === currentAnnotationId) { %>class="active-link" <% } %>onClick="showAnnotation(<% if (id) { %>\'<%-id%>\'<% } else { %>null<% } %>)"><%-title%></a><% if (id) { %>&nbsp;[<a onClick="removeAnnotation(\'<%-id%>\')">X</a>]<% } %></span>'),
   })
 });
 
@@ -20,11 +20,12 @@ var List = Backbone.Collection.extend({
 });
 
 function init() {
-  YPet.AnnotationTypes = new AnnotationTypeList([{name: 'PII', color: 'black'}]);
+  YPet.AnnotationTypes = new AnnotationTypeList([{name: 'PII', color: 'grey'}]);
   YPet.addRegions({'p': '#target'});
   $.when(loadDocumentList(), loadAnnotationList()).done(function() {
+    showDocumentList();
     if (documents) {
-      var documentId = documents[0].id;
+      var documentId = documents[0]._id;
       showDocument(documentId);
     }
   })
@@ -32,33 +33,35 @@ function init() {
 
 function loadDocumentList() {
   return getDocuments().done(function(data) {
-    documents = _.map(data, function(d) {
-      var title = d.text;
-      if (title.length > 30) {
-        title = title.substring(0,27) + '...';
-      }
-      return {title: title, id: d._id, text: d.text}
-    });
-    showDocumentList();
+    documents = data;
   })
 }
 
 function showDocumentList() {
-  (new DocumentListView({
-    collection: new List(documents),
+  shownDocuments = _.map(documents, function(d) {
+    var title = d.text;
+    if (title.length > 30) {
+      title = title.substring(0,27) + '...';
+    }
+    return {title: title, id: d._id, text: d.text}
+  });
+  documentList = new DocumentListView({
+    collection: new List(shownDocuments),
     el: '#document-list'
-  })).render();
+  });
+  documentList.render();
 }
 
 function showDocument(documentId) {
   var doc = _.find(documents, function(d) {
-    return d.id == documentId
+    return d._id == documentId
   })
   currentDocumentId = documentId;
-  currentAnnoationId = null
+  currentAnnotationId = null
   $('p.paragraph').text(doc.text);
   paragraph = new Paragraph({'text': doc.text});
   YPet['p'].show(new WordCollectionView({collection: paragraph.get('words')}));
+  documentList.render();
   showAnnotationList(documentId);
   firstAnnotation = _.find(annotations, function(a) {
     return a.documentId == documentId;
@@ -107,6 +110,23 @@ function showAnnotation(annotationId) {
     return a._id == annotationId
   })
   paragraph.setAnnotationJSON(annotation ? annotation.annotations: []);
+  annotationList.render();
+}
+
+function removeAnnotation(annotationId) {
+  deleteAnnotation(annotationId).done(function() {
+    annotations = _.filter(annotations, function(a) {
+        return a._id != annotationId
+    });
+    showAnnotationList(currentDocumentId);
+    if (currentAnnotationId == annotationId) {
+      firstAnnotation = _.find(annotations, function(a) {
+        return a.documentId == currentDocumentId;
+      });
+      currentAnnotationId = firstAnnotation ? firstAnnotation._id : null;
+      showAnnotation(currentAnnotationId);
+    }
+  });
 }
 
 function saveAnnotation() {
@@ -164,15 +184,22 @@ function getDocument(id) {
 
 function getDocuments() {
   return request(
-    'https://box.jakobkoehler.de/box_3c8609f018476a8a41d6/documents/', 
+    'https://box.jakobkoehler.de/box_3c8609f018476a8a41d6/documents/?sort=_createdOn', 
     'GET'
   );
 }
 
 function getAnnotations() {
   return request(
-    'https://box.jakobkoehler.de/box_3c8609f018476a8a41d6/annotations/',
+    'https://box.jakobkoehler.de/box_3c8609f018476a8a41d6/annotations/?sort=_createdOn',
     'GET'
+  );
+}
+
+function deleteAnnotation(id) {
+  return request(
+    'https://box.jakobkoehler.de/box_3c8609f018476a8a41d6/annotations/'+id,
+    'DELETE'
   );
 }
 
@@ -180,17 +207,27 @@ var documents = [];
 var annotations = [];
 var paragraph;
 
-var currentDocument = null;
-var currentAnnotation = null;
+var currentDocumentId = null;
+var currentAnnotationId = null;
 var annotationList = null;
+var password;
 
 (function login() {
-  password = prompt("Password:");
+  password = window.localStorage.getItem('annotatorPassword');
+  if(!password) {
+    password = prompt("Password:");
+  }
   if (password) {
     request(
       'https://box.jakobkoehler.de/box_3c8609f018476a8a41d6/annotations/',
       'HEAD'
-    ).done(init).fail(login);
+    ).done(function() {
+      window.localStorage.setItem('annotatorPassword', password);
+      init();
+    }).fail(function() {
+      window.localStorage.removeItem('annotatorPassword');
+      login();
+    });
   } else {
     login();
   }

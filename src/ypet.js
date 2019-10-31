@@ -83,7 +83,11 @@ AnnotationList = Backbone.Collection.extend({
 
   initialize : function(options) {
     this.listenTo(this, 'add', function(annotation) {
-      var ann = this.sanitizeAnnotation(annotation.get('words').pluck('text').join(' '), annotation.get('words').first().get('start'));
+      var ann = {
+        text: annotation.get('words').pluck('text').join(' '), 
+        start: annotation.get('words').first().get('start')
+      };
+      ann = this.sanitizeAnnotation(ann.text, ann.start);
       annotation.set('text', ann.text);
       annotation.set('start', ann.start);
       this.drawAnnotations(annotation);
@@ -199,7 +203,9 @@ Paragraph = Backbone.RelationalModel.extend({
   },
 
   getAnnotationJSON() {
-    return this.get('annotations').toJSON();
+    return _.map(this.get('annotations').toJSON(), function(json) {
+      return {text: json.text, start: json.start}
+    });
   }
 });
 
@@ -223,7 +229,7 @@ WordView = Backbone.Marionette.ItemView.extend({
     this.listenTo(this.model, 'change:neighbor', this.render);
     this.listenTo(this.model, 'change:latest', function(model, value, options) {
       if(this.model.get('latest')) {
-        this.model.trigger('highlight', {'color': '#7FE5FF'});
+        this.model.trigger('highlight', {'color': 'lightgrey'});
       }
       if(options.force) {
         this.model.trigger('highlight', {'color': '#fff'});
