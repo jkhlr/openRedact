@@ -184,14 +184,14 @@ function getDocument(id) {
 
 function getDocuments() {
   return request(
-    'https://box.jakobkoehler.de/box_3c8609f018476a8a41d6/documents/?sort=_createdOn', 
+    'https://box.jakobkoehler.de/box_3c8609f018476a8a41d6/documents/?sort=_createdOn&limit=0', 
     'GET'
   );
 }
 
 function getAnnotations() {
   return request(
-    'https://box.jakobkoehler.de/box_3c8609f018476a8a41d6/annotations/?sort=_createdOn',
+    'https://box.jakobkoehler.de/box_3c8609f018476a8a41d6/annotations/?sort=_createdOn&limit=0',
     'GET'
   );
 }
