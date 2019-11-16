@@ -72,7 +72,7 @@ function showDocumentList() {
     documentList.collection = new List(shownDocuments)
   }
   documentList.render();
-  if (shownDocuments) {
+  if (shownDocuments.length) {
     showDocument(shownDocuments[0].id);
   }
 }
