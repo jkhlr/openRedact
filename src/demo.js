@@ -14,6 +14,14 @@ var AnnotationListView = Backbone.Marionette.CollectionView.extend({
   })
 });
 
+var PageNumberView = Backbone.View.extend({
+  render: function(){
+      var template =  _.template('<% if (currentPageNumber !== 0) { %><a onClick="showPage(currentPageNumber - 1)"><</a><% } else { %><<% } %>&nbsp;<%-currentPageNumber + 1%>/<%-numPages%>&nbsp;<% if (currentPageNumber < numPages - 1) { %><a onClick="showPage(currentPageNumber + 1)">></a><% } else { %>><% } %>')
+      this.$el.html( template );
+    }
+
+});
+
 var List = Backbone.Collection.extend({
   model: Backbone.Model.extend({}),
   url: function() { return false; }
@@ -24,32 +32,49 @@ function init() {
   YPet.addRegions({'p': '#target'});
   $.when(loadDocumentList(), loadAnnotationList()).done(function() {
     showDocumentList();
-    if (documents) {
-      var documentId = documents[0]._id;
-      showDocument(documentId);
-    }
   })
+}
+
+function showPage(pageNumber) {
+  currentPageNumber = pageNumber;
+  pageNumberView.render();
+  showDocumentList();
 }
 
 function loadDocumentList() {
   return getDocuments().done(function(data) {
     documents = data;
+    numPages = Math.ceil(data.length/pageSize);
+    pageNumberView = new PageNumberView({
+      tagName: 'span',
+      el: '#page-number'
+    });
+    pageNumberView.render();
   })
 }
 
 function showDocumentList() {
-  shownDocuments = _.map(documents, function(d) {
+  var startItem = currentPageNumber * pageSize;
+  var page = documents.slice(startItem, startItem + pageSize);
+  var shownDocuments = _.map(page, function(d) {
     var title = d.text;
     if (title.length > 30) {
       title = title.substring(0,27) + '...';
     }
     return {title: title, id: d._id, text: d.text}
   });
-  documentList = new DocumentListView({
-    collection: new List(shownDocuments),
-    el: '#document-list'
-  });
+  if (!documentList) {
+    documentList = new DocumentListView({
+      collection: new List(shownDocuments),
+      el: '#document-list'
+    });
+  } else {
+    documentList.collection = new List(shownDocuments)
+  }
   documentList.render();
+  if (shownDocuments) {
+    showDocument(shownDocuments[0].id);
+  }
 }
 
 function showDocument(documentId) {
@@ -209,8 +234,17 @@ var paragraph;
 
 var currentDocumentId = null;
 var currentAnnotationId = null;
+var currentPageNumber = 0;
+
+var documentList = null;
 var annotationList = null;
+var pageNumberView = null;
+
+var numPages = null;
+var pageSize = 10;
+
 var password;
+
 
 (function login() {
   password = window.localStorage.getItem('annotatorPassword');
