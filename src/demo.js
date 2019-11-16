@@ -109,7 +109,7 @@ function showAnnotationList(documentId) {
     return {
       documentId: a.documentId,
       id: a._id,
-      title: 'Annotation ' + i,
+      title: 'H ' + (i - 1),
       annotations: a.annotations
     }
   });
