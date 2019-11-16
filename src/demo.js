@@ -241,7 +241,7 @@ var annotationList = null;
 var pageNumberView = null;
 
 var numPages = null;
-var pageSize = 10;
+var pageSize = 17;
 
 var password;
 
