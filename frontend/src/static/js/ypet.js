@@ -171,7 +171,7 @@ Paragraph = Backbone.RelationalModel.extend({
           word_obj = {
             'text': word,
             'start': step,
-          }
+          };
           space_padding = (text.substring(step).match(/\s+/g) || [""])[0].length;
           step = step + word.length + space_padding;
           return word_obj;
