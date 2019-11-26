@@ -43,10 +43,10 @@ p.paragraph span:hover {
   cursor: pointer;
 }
 
-#page-number-container {
-  text-align: center;
+.center {
+  text-align: center!important;
 }
 
-#page-number {
+.pointer {
   cursor: pointer;
 }
