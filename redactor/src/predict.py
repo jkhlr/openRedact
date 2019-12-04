@@ -3,6 +3,8 @@ import string
 import spacy
 import pandas as pd
 
+from . import MODEL_DIR
+
 
 def predict_redaction_labels(words):
     # TODO: rewritten so that the last sentence without a period is not dropped
@@ -15,9 +17,9 @@ def predict_redaction_labels(words):
     print(data)
     data.columns=['Sentence']
 
-    model_dir = "model"
+    model_dir = f'{MODEL_DIR}/pretrained'
     nlp2 = spacy.load(model_dir)
-    nlp = spacy.load("en_core_web_sm")
+    nlp = spacy.load('en_core_web_sm')
 
     table = str.maketrans(dict.fromkeys(string.punctuation))
     h0, h1 = [],  []
