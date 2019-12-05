@@ -1,12 +1,12 @@
-FROM python:3.7-alpine
+FROM python:3.7
 
 WORKDIR /home/app
-
-RUN apk add --upgrade python3-dev libstdc++ g++
 
 COPY requirements.txt requirements.txt
 RUN pip install -r requirements.txt
 RUN spacy download en_core_web_sm
+
+RUN pip install sklearn
 
 COPY src redactor
 COPY models model

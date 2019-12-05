@@ -4,7 +4,7 @@ from collections import defaultdict
 
 import requests
 import spacy
-from attr import dataclass
+from dataclasses import dataclass
 from spacy.util import minibatch, compounding
 
 from . import MODEL_DIR
@@ -17,7 +17,7 @@ def train_model(model_name):
     training_data = load_training_data()
     model = train_spacy(training_data)
     model.meta["name"] = model_name
-    model.to_disk(model_path)
+    model.to_disk(f'{model_path}/spacy')
     print(f'Model {model_name} trained.')
 
 

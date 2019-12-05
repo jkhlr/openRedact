@@ -47,7 +47,8 @@ services:
     networks:
       - net
     volumes:
-      - ./redactor/src:/home/app/redactor/
+      - ./redactor/src:/home/app/redactor
+      - ./redactor/models:/home/app/models
     links:
       - frontend
 

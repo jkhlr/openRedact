@@ -25,7 +25,8 @@ def redact():
 
     text = request.json['text']
     words = text.split(' ')
-    h0, h1 = predict_redaction_labels(words)
+    model_name = 'pretrained'
+    h0, h1 = predict_redaction_labels(words, model_name)
     return {'text': words, 'H0': h0, 'H1': h1}
 
 

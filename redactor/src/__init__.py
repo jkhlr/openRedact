@@ -1,1 +1,1 @@
-MODEL_DIR = 'models'
+MODEL_DIR = '/home/app/models'

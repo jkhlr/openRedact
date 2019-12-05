@@ -1,6 +1,6 @@
 import spacy
 import json
-from attr import dataclass
+from dataclasses import dataclass
 
 with open('../../documents_96_annotated.json') as f:
     documents = json.load(f)
