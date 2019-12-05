@@ -1,28 +1,31 @@
-import os
 import random
 from collections import defaultdict
 
+import joblib
 import requests
 import spacy
 from dataclasses import dataclass
+
+from sklearn.ensemble import RandomForestClassifier
 from spacy.util import minibatch, compounding
 
-from . import MODEL_DIR
+from . import MODEL_DIR, get_label_vectors
 
 
-def train_model(model_name):
+def train_model(model_name, iterations):
     model_path = f'{MODEL_DIR}/{model_name}'
-    os.mkdir(model_path)
     print(f'Training {model_name}...')
     training_data = load_training_data()
-    model = train_spacy(training_data)
+    model = train_spacy(training_data, iterations=iterations)
+    classifier = train_forest(training_data, model)
     model.meta["name"] = model_name
     model.to_disk(f'{model_path}/spacy')
+    joblib.dump(classifier, f'{model_path}/randomforestmodel.pkl')
     print(f'Model {model_name} trained.')
 
 
 def load_training_data():
-    document_url = "http://frontend/jsobbox/documents/?limit=0"
+    document_url = "http://frontend/jsonbox/documents/?limit=0"
     annotation_url = "http://frontend/jsonbox/annotations/?sort=_createdOn&limit=0"
 
     documents_data = requests.get(document_url).json()
@@ -44,7 +47,7 @@ def load_training_data():
     ]
 
     def get_annotation_vector(text, annotations):
-        annotation_vector = [0] * len(text.split(' '))
+        annotation_vector = [0] * len(text.strip().split(' '))
         for annotation in annotations:
             if annotation['start'] == 0:
                 start = 0
@@ -61,7 +64,7 @@ def load_training_data():
     ]
 
     documents_train = [{
-        'text': document['text'].split(' '),
+        'text': document['text'].strip().split(' '),
         'H0': get_annotation_vector(document['text'], document['annotations'][0]),
         'H1': get_annotation_vector(document['text'], document['annotations'][1])
     } for document in fully_annotated_documents]
@@ -73,6 +76,7 @@ def load_training_data():
         ]
 
     return documents_train
+
 
 @dataclass
 class Sentence:
@@ -159,18 +163,17 @@ def transform_train_data(data):
     return sentences
 
 
-def train_spacy(data, iterations=1):
+def train_spacy(data, iterations):
     train_data = transform_train_data(data)
 
     nlp = spacy.blank("en")
-    optimizer = nlp.begin_training()
 
     ner = nlp.create_pipe("ner")
     ner.add_label("H0")
     ner.add_label("H1")
     nlp.add_pipe(ner)
 
-
+    optimizer = nlp.begin_training()
 
     # get names of other pipes to disable them during training
     other_pipes = [pipe for pipe in nlp.pipe_names if pipe != "ner"]
@@ -195,3 +198,23 @@ def train_spacy(data, iterations=1):
                 nlp.update(texts, entities, sgd=optimizer, drop=0.35, losses=losses)
 
     return nlp
+
+
+def train_forest(data, spacy_model, estimators=10):
+    label_vectors = [
+        vector
+        for document in data
+        for vector in get_label_vectors(
+            words=document['text'],
+            trained_model=spacy_model,
+            ground_truth={'H0': document['H0'], 'H1': document['H1']}
+        )
+    ]
+    x = [vector[:-1] for vector in label_vectors]
+    y = [[vector[-1]] for vector in label_vectors]
+    classifier = RandomForestClassifier(n_estimators=estimators, criterion='entropy')
+    classifier.fit(x, y)
+    return classifier
+
+
+

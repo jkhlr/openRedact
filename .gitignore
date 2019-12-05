@@ -2,3 +2,5 @@
 .ipynb_checkpoints/
 __pycache__/
 .DS_Store
+redactor/models/*
+!redactor/models/pretrained/

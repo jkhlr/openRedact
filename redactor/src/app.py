@@ -1,6 +1,7 @@
 import os
 import re
 
+from apscheduler.events import EVENT_JOB_ERROR
 from flask import Flask, request
 from flask_apscheduler import APScheduler
 
@@ -40,8 +41,9 @@ def train():
         if request.json.get('modelName') is None:
             return {'error': "Missing key in JSON body: 'modelName'"}, 400
         model_name = request.json['modelName']
+        iterations = request.json.get('iterations', 150)
         try:
-            create_model(model_name)
+            create_model(model_name, iterations)
         except FileExistsError:
             return {'error': f'modelName {model_name} already exists.'}, 400
         else:
@@ -63,12 +65,20 @@ def get_models():
     }
 
 
-def create_model(model_name):
+def create_model(model_name, iterations):
     os.mkdir(f'{MODEL_DIR}/{model_name}')
     scheduler.add_job(
         id=f'train_{model_name}',
         func=train_model,
-        args=[model_name],
+        args=[model_name, iterations],
         trigger='date'
     )
 
+
+def job_failed(event):
+    match = model_name_regex.match(event.job_id)
+    if match:
+        os.rmdir(f'{MODEL_DIR}/{match.groups()[0]}')
+
+
+scheduler.add_listener(job_failed, EVENT_JOB_ERROR)
