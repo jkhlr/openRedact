@@ -119,7 +119,7 @@ function loadDocumentList() {
     })
 }
 
-function showDocumentList() {
+function showDocumentList(showFirst) {
     var startItem = currentPageNumber * pageSize;
     var page = documents.slice(startItem, startItem + pageSize);
     var shownDocuments = _.map(page, function (d) {
@@ -138,7 +138,7 @@ function showDocumentList() {
         documentList.collection = new List(shownDocuments)
     }
     documentList.render();
-    if (shownDocuments.length) {
+    if (shownDocuments.length && showFirst) {
         showDocument(shownDocuments[0].id);
     }
 }
@@ -307,6 +307,24 @@ function pollModelStatus() {
     })
 }
 
+function uploadDocument() {
+    var text = $('#document-upload').val();
+    if (!text)
+        return;
+
+    postDocuments(text).done(function(data) {
+        $('#document-upload').val('');
+        documents.push(data);
+
+        numPages = Math.ceil(documents.length / pageSize);
+        pageNumberView.render();
+
+        showDocumentList(false);
+        showPage(numPages - 1);
+        showDocument(data._id);
+    })
+
+}
 function showRedactionLevel(level) {
     currentRedactionLevel = level;
     var annotation = redactions[level];
@@ -337,6 +355,15 @@ function getDocuments() {
         'GET'
     );
 }
+
+function postDocuments(text) {
+    return request(
+        'jsonbox/documents/',
+        'POST',
+        {text: text}
+    );
+}
+
 
 function getAnnotations() {
     return request(
