@@ -24,9 +24,9 @@ def redact():
     if request.json.get('text') is None:
         return {'error': "Missing key in JSON body: 'text'"}, 400
 
+    model_name = request.json.get('modelName', 'pretrained')
     text = request.json['text']
     words = text.split(' ')
-    model_name = 'pretrained'
     h0, h1 = predict_redaction_labels(words, model_name)
     return {'text': words, 'H0': h0, 'H1': h1}
 
@@ -53,15 +53,21 @@ def train():
 def get_models():
     return {
         'models': [
-            {
-                'modelName': model_name,
-                'status':
-                    'ready'
-                    if os.listdir(f'{MODEL_DIR}/{model_name}')
-                    else 'training'
-            }
-            for model_name in next(os.walk(MODEL_DIR))[1]
-        ]
+                      {
+                          'modelName': 'pretrained',
+                          'status': 'ready'
+                      }
+                  ] + [
+                      {
+                          'modelName': model_name,
+                          'status':
+                              'ready'
+                              if os.listdir(f'{MODEL_DIR}/{model_name}')
+                              else 'training'
+                      }
+                      for model_name in next(os.walk(MODEL_DIR))[1]
+                      if model_name != 'pretrained'
+                  ]
     }
 
 

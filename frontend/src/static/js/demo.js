@@ -35,6 +35,14 @@ var RedactionLevelView = Backbone.View.extend({
     }
 });
 
+var RedactionModelView = Backbone.Marionette.CollectionView.extend({
+    tagName: 'ul',
+    childView: Backbone.Marionette.ItemView.extend({
+        tagName: 'li',
+        template: _.template('<span><a <% if (modelName === currentRedactionModel) { %>class="active-link" <% } %>onClick="setRedactionModel(\'<%-modelName%>\')"><%-modelName%></a>&nbsp;Status: <%-status%></span>'),
+    })
+});
+
 var List = Backbone.Collection.extend({
     model: Backbone.Model.extend({}),
     url: function () {
@@ -54,8 +62,7 @@ function init() {
         tagName: 'span',
         el: '#redaction-level'
     });
-    redactionLevelView.render();
-    $.when(loadDocumentList(), loadAnnotationList()).done(function () {
+    $.when(loadDocumentList(), loadAnnotationList(), loadRedactionModels()).done(function () {
         setRunMode('REDACT');
     });
 }
@@ -63,7 +70,7 @@ function init() {
 function setRunMode(mode) {
     runMode = mode;
     if (runMode === 'REDACT') {
-        showText('...');
+        showText('Click [Redact Text] to redact input text...');
         $('.ui-annotate').hide();
         $('.ui-redact').show();
         $('.redaction-level-container').hide();
@@ -79,6 +86,25 @@ function showPage(pageNumber) {
     currentPageNumber = pageNumber;
     pageNumberView.render();
     showDocumentList();
+}
+
+function setRedactionModel(modelName) {
+    currentRedactionModel = modelName;
+    redactionModelView.render();
+}
+
+function loadRedactionModels() {
+    return getRedactionModels().done(function (data) {
+        if (!redactionModelView) {
+            redactionModelView = new RedactionModelView({
+                collection: new List(data.models),
+                el: '#redaction-models'
+            });
+        } else {
+            redactionModelView.collection = new List(data.models);
+        }
+        redactionModelView.render();
+    });
 }
 
 function loadDocumentList() {
@@ -262,6 +288,25 @@ function redactText() {
     })
 }
 
+function trainModel() {
+    var modelName = $('#model-name').val();
+    triggerModelTraining(modelName, 1).done(function () {
+        $('#model-name').val('');
+        pollModelStatus();
+    })
+}
+
+function pollModelStatus() {
+    loadRedactionModels().done(function(data) {
+        var statuses = data.models.map(function (model) {
+            return model.status;
+        });
+        if (statuses.filter(function (status) {return status === 'training'}).length) {
+           setTimeout(pollModelStatus, 2000)
+        }
+    })
+}
+
 function showRedactionLevel(level) {
     currentRedactionLevel = level;
     var annotation = redactions[level];
@@ -311,11 +356,31 @@ function getRedaction(text) {
     return $.ajax({
         url: 'redactor/redact/',
         type: 'POST',
-        data: JSON.stringify({'text': text}),
+        data: JSON.stringify({text: text, modelName: currentRedactionModel}),
         dataType: 'json',
         contentType: 'application/json',
     });
 }
+
+function getRedactionModels() {
+    return $.ajax({
+        url: 'redactor/train/',
+        type: 'GET',
+        dataType: 'json',
+        contentType: 'application/json',
+    });
+}
+
+function triggerModelTraining(modelName, iterations) {
+    return $.ajax({
+        url: 'redactor/train/',
+        type: 'POST',
+        data: JSON.stringify({modelName: modelName, iterations: iterations}),
+        dataType: 'json',
+        contentType: 'application/json',
+    });
+}
+
 
 var documents = [];
 var annotations = [];
@@ -327,12 +392,14 @@ var currentDocumentId = null;
 var currentAnnotationId = null;
 var currentPageNumber = 0;
 var currentRedactionLevel = null;
+var currentRedactionModel = 'pretrained';
 
 
 var documentList = null;
 var annotationList = null;
 var pageNumberView = null;
 var runModeView = null;
+var redactionModelView = null;
 
 var numPages = null;
 var pageSize = 17;

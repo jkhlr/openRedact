@@ -50,3 +50,22 @@ p.paragraph span:hover {
 .pointer {
   cursor: pointer;
 }
+
+#model-name {
+  margin-bottom: 10px;
+}
+
+.controls {
+  border: thin solid grey;
+  margin-left: 10px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.redaction-space {
+  border: thin solid grey;
+}
+
+#target p.paragraph {
+  margin-bottom: 0;
+}

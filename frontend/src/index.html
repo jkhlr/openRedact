@@ -8,14 +8,17 @@
   </head>
   <body>
     <div class="container head-space">
-      <div class="col-md-8">
+      <div style="text-align: center; margin-bottom: 30px">
+          <h1>openRedact <small>Automatic text redaction, powered by ML</small></h1>
+      </div>
+      <div class="col-md-7 redaction-space">
         <div class="row">
           <div id="target">
             <p class="paragraph"></p>
           </div>
         </div>
       </div>
-      <div class="col-md-4">
+      <div class="col-md-4 controls">
         <div class="row">
           <div class="col-md-12 center">
             <span id="run-mode" class="pointer"></span>
@@ -39,10 +42,23 @@
             <button class="btn btn-primary" id="save-btn" onClick="saveAnnotation()">Save Annotation</button>
           </div>
         </div>
+         <div class="row ui-redact" style="display:None;">
+          <div class="col-md-12">
+            <h3>Redaction Models:</h3>
+            <ul id="redaction-models"></ul>
+          </div>
+        </div>
+        <div class="row ui-redact" style="display:None;">
+          <div class="col-md-12">
+            <h3>Train a new model:</h3>
+            <label for="model-name">Model Name:&nbsp;</label><input type="text" id="model-name" style="width:73%">
+            <button class="btn btn-primary" onclick="trainModel()">Train</button>
+          </div>
+        </div>
         <div class="row ui-redact" style="display:None;">
           <div class="col-md-12">
             <h3>Text to redact:</h3>
-            <textarea id="redact-textarea" rows="20" style="width: 100%">Lorem ipsum dolor sit amet...</textarea>
+            <textarea id="redact-textarea" rows="7" style="width: 100%">Sabino Acquaviva (29 April 1927 – 29 December 2015) was an Italian sociologist. He was president and director of University of Padua between 1977 and 1988. Acquaviva died on 29 December 2015 in his hometown of Padua, Italy.</textarea>
             <button class="btn btn-primary" id="redact-btn" onClick="redactText()">Redact Text</button>
           </div>
         </div>

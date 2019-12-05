@@ -10,6 +10,7 @@ def predict_redaction_labels(words, model_name):
     predictions = [int(classifier.predict([vector])) for vector in label_vectors]
     classes = [(int(cls == 0), int(cls == 1)) for cls in predictions]
     h0, h1 = zip(*classes)
+    h1 = [int(h0[i] or h1[i]) for i in range(len(h1))]
     return h0, h1
 
 
