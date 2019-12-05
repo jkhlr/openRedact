@@ -9,8 +9,8 @@ The dataset contains two levels of redaction:
 ## Data Format
 The data is in JSON format, with 3 keys for each document:
 - `text`: A list of words that comprises the document. The original text can be reconstructed by joining these words with a space character
-- 'H0' A list of values (`0` or `1`), which indicates for each word if it is part of redaction level H0
-- 'H1' A list of values (`0` or `1`), which indicates for each word if it is part of redaction level H1
+- `H0` A list of values (`0` or `1`), which indicates for each word if it is part of redaction level H0
+- `H1` A list of values (`0` or `1`), which indicates for each word if it is part of redaction level H1
 
 ## Redaction and Annotation Tool
 THe tool that was built in order to create this dataset supports a collaborativ approach for data annotation. 
